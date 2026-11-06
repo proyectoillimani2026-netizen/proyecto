@@ -291,7 +291,7 @@ export function applyOrderAction(db: DB, orderId: string, action: string, sessio
   }
 
   if (action === "take") {
-    if (session.role !== "delivery") throw new HttpError(401, "Solo delivery puede tomar un pedido.");
+    if (session.role !== "delivery" && session.role !== "admin") throw new HttpError(401, "Solo delivery puede tomar un pedido.");
     if (order.mode !== "delivery") throw new HttpError(400, "Este pedido es para retirar en el local.");
     if (order.status !== "received" && order.status !== "preparing") {
       throw new HttpError(400, "Este pedido ya no se puede tomar.");

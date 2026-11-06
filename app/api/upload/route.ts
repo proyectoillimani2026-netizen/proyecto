@@ -13,7 +13,7 @@ export async function POST(request: Request) {
   if (!file.type.startsWith("image/") || file.type === "image/svg+xml") {
     return Response.json({ error: "Subí una foto JPG, PNG o WebP." }, { status: 400 });
   }
-  if (file.size > 8_000_000) return Response.json({ error: "La imagen puede pesar hasta 8 MB." }, { status: 400 });
+  if (file.size > 4_000_000) return Response.json({ error: "La imagen puede pesar hasta 4 MB." }, { status: 400 });
 
   try {
     const original = Buffer.from(await file.arrayBuffer());

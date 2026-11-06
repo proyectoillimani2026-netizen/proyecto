@@ -51,7 +51,7 @@ type PhotonFeature = {
 
 function photonPlace(feature: PhotonFeature): Place | null {
   const [lng, lat] = feature.geometry?.coordinates || [];
-  if (!Number.isFinite(lat) || !Number.isFinite(lng)) return null;
+  if (typeof lat !== "number" || typeof lng !== "number" || !Number.isFinite(lat) || !Number.isFinite(lng)) return null;
   if (lat > NORTH || lat < SOUTH || lng < WEST || lng > EAST) return null;
   const props = feature.properties || {};
   if (props.state && !/mendoza/i.test(props.state)) return null;

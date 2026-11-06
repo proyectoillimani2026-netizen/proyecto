@@ -9,6 +9,28 @@ const dbPath = path.join(process.cwd(), "data", "db.json");
 
 let chain: Promise<unknown> = Promise.resolve();
 
+function supabaseSettings() {
+  const url = process.env.SUPABASE_URL || "";
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
+  if (!url || !key) {
+    throw new Error("Falta configurar SUPABASE_URL y SUPABASE_SERVICE_ROLE_KEY.");
+  }
+  return { url: url.replace(/\/$/, ""), key };
+}
+
+function supabaseHeaders(key: string) {
+  return {
+    apikey: key,
+    Authorization: `Bearer ${key}`,
+    "Content-Type": "application/json",
+  };
+}
+
+type StoredDb = {
+  db: DB;
+  version: number;
+};
+
 function enqueue<T>(fn: () => Promise<T>): Promise<T> {
   const run = chain.then(fn);
   chain = run.then(
@@ -268,24 +290,103 @@ function seed(): DB {
   };
 }
 
-async function writeDb(db: DB) {
-  await fs.mkdir(path.dirname(dbPath), { recursive: true });
-  const tmp = `${dbPath}.tmp`;
-  await fs.writeFile(tmp, JSON.stringify(db, null, 2), "utf8");
-  await fs.rename(tmp, dbPath);
+async function readStoredDb(): Promise<StoredDb | undefined> {
+  const { url, key } = supabaseSettings();
+  const headers = supabaseHeaders(key);
+  const request = (table: string, select: string) =>
+    fetch(`${url}/rest/v1/${table}?${select}`, { headers, cache: "no-store" });
+  const stateResponse = await request("app_db_state", "id=eq.main&select=version,order_seq");
+  if (!stateResponse.ok) {
+    const detail = await stateResponse.text();
+    throw new Error(`No se pudo leer app_db_state en Supabase (${stateResponse.status}): ${detail}`);
+  }
+  const states = (await stateResponse.json()) as Array<{ version: number; order_seq: number }>;
+  const state = states[0];
+  if (!state) throw new Error("No existe el registro principal de app_db_state en Supabase.");
+  if (state.version === 0) return undefined;
+
+  const [restaurantResponse, usersResponse, customersResponse, productsResponse, ordersResponse] = await Promise.all([
+    request("restaurant_settings", "id=eq.main&select=data"),
+    request("staff_users", "select=data&order=sort_order.asc"),
+    request("customers", "select=data&order=sort_order.asc"),
+    request("products", "select=data&order=sort_order.asc"),
+    request("orders", "select=data&order=sort_order.asc"),
+  ]);
+  const responses = [restaurantResponse, usersResponse, customersResponse, productsResponse, ordersResponse];
+  const failed = responses.find((response) => !response.ok);
+  if (failed) {
+    const detail = await failed.text();
+    throw new Error(`No se pudo leer el estado de la aplicación en Supabase (${failed.status}): ${detail}`);
+  }
+
+  const [restaurants, users, customers, products, orders] = (await Promise.all(
+    responses.map((response) => response.json()),
+  )) as [
+    Array<{ data: DB["restaurant"] }>,
+    Array<{ data: DB["users"][number] }>,
+    Array<{ data: DB["customers"][number] }>,
+    Array<{ data: DB["products"][number] }>,
+    Array<{ data: DB["orders"][number] }>,
+  ];
+  const restaurant = restaurants[0]?.data;
+  if (!restaurant) throw new Error("No existe la configuración del restaurante en Supabase.");
+
+  return {
+    version: Number(state.version),
+    db: hydrate({
+      restaurant,
+      orderSeq: Number(state.order_seq),
+      users: users.map((row) => row.data),
+      customers: customers.map((row) => row.data),
+      products: products.map((row) => row.data),
+      orders: orders.map((row) => row.data),
+    }),
+  };
 }
 
-async function load(): Promise<DB> {
+async function readLegacyDb(): Promise<DB> {
   try {
     const raw = await fs.readFile(dbPath, "utf8");
     return hydrate(JSON.parse(raw) as DB);
   } catch (error) {
     const code = (error as NodeJS.ErrnoException).code;
     if (code !== "ENOENT") throw error;
-    const db = hydrate(seed());
-    await writeDb(db);
-    return db;
+    return hydrate(seed());
   }
+}
+
+async function writeDb(db: DB, expectedVersion: number) {
+  const { url, key } = supabaseSettings();
+  const response = await fetch(`${url}/rest/v1/rpc/save_app_state`, {
+    method: "POST",
+    headers: supabaseHeaders(key),
+    body: JSON.stringify({
+      p_expected_version: expectedVersion,
+      p_order_seq: db.orderSeq,
+      p_restaurant: db.restaurant,
+      p_staff_users: db.users,
+      p_customers: db.customers,
+      p_products: db.products,
+      p_orders: db.orders,
+    }),
+    cache: "no-store",
+  });
+  if (!response.ok) {
+    const detail = await response.text();
+    throw new Error(`No se pudo guardar el estado de la aplicación en Supabase (${response.status}): ${detail}`);
+  }
+  return (await response.json()) as boolean;
+}
+
+async function load(): Promise<DB> {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const stored = await readStoredDb();
+    if (stored) return stored.db;
+
+    const db = await readLegacyDb();
+    if (await writeDb(db, 0)) return db;
+  }
+  throw new Error("No se pudo inicializar la base de datos tras varios intentos concurrentes.");
 }
 
 function hydrate(db: DB): DB {
@@ -321,9 +422,13 @@ export function readDb() {
 
 export function updateDb<T>(mutator: (db: DB) => T | Promise<T>) {
   return enqueue(async () => {
-    const db = await load();
-    const result = await mutator(db);
-    await writeDb(db);
-    return result;
+    for (let attempt = 0; attempt < 5; attempt += 1) {
+      const stored = await readStoredDb();
+      const version = stored?.version ?? 0;
+      const db = stored?.db ?? (await readLegacyDb());
+      const result = await mutator(db);
+      if (await writeDb(db, version)) return result;
+    }
+    throw new Error("La base de datos cambió en paralelo; volvé a intentar la operación.");
   });
 }
