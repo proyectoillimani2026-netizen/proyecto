@@ -6,6 +6,7 @@ import { CustomerCourierMap } from "@/components/CustomerCourierMap";
 import { formatWhen, money, statusLabel } from "@/lib/format";
 import type { Order } from "@/lib/types";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 function isCurrent(order: Order) {
   return order.status !== "delivered" && order.status !== "cancelled";
@@ -52,7 +53,10 @@ export default function AccountPage() {
   return (
     <>
       <header className="topbar">
-        <Link href="/"><Logo /></Link>
+        <div className="brand-group">
+          <Link href="/"><Logo /></Link>
+          <ThemeToggle />
+        </div>
       </header>
       <main className="narrow">
         <h1>Mis pedidos</h1>

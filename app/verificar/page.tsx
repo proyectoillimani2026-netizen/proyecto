@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Logo } from "@/components/Logo";
+import { ThemeToggle } from "@/components/ThemeToggle";
 
 const confirmed = "Tu cuenta ya está confirmada. Ya podés entrar y hacer un pedido.";
 
@@ -68,6 +69,7 @@ export default function VerifyPage() {
   return (
     <main className="login-wrap">
       <section className="login-card">
+        <div className="card-theme"><ThemeToggle /></div>
         <Logo />
         <h1>{ok ? "Cuenta confirmada" : "Confirmación"}</h1>
         <p>{message}</p>

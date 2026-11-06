@@ -6,6 +6,7 @@ import { roleLabel } from "@/lib/format";
 import type { Session } from "@/lib/types";
 import { Logo } from "./Logo";
 import { PreviewEye } from "./PreviewEye";
+import { ThemeToggle } from "./ThemeToggle";
 
 export function StaffShell({ session, children }: { session: Session; children: React.ReactNode }) {
   const path = usePathname();
@@ -22,7 +23,10 @@ export function StaffShell({ session, children }: { session: Session; children: 
   return (
     <div>
       <header className="staff-bar">
-        <Link href={home}><Logo /></Link>
+        <div className="brand-group staff-brand">
+          <Link href={home}><Logo /></Link>
+          <ThemeToggle />
+        </div>
         <nav>
           {links.map((link) => (
             <Link key={link.href} href={link.href} className={path === link.href ? "active" : ""}>{link.label}</Link>

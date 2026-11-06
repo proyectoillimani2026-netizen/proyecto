@@ -11,6 +11,7 @@ import type { DiningMode, Product, Restaurant, Role } from "@/lib/types";
 import { Logo } from "./Logo";
 import { PreviewEye } from "./PreviewEye";
 import { MiniMap } from "./MiniMap";
+import { ThemeToggle } from "./ThemeToggle";
 import { bannerSources, menuSources } from "@/lib/image-src";
 
 function brokenImage(event: React.SyntheticEvent<HTMLImageElement>) {
@@ -498,9 +499,12 @@ export function Storefront({ restaurant, products }: { restaurant: Restaurant; p
           <span />
           <span />
         </button>
-        <Link className="brand" href="/" aria-label="Illimani Eats">
-          <Logo />
-        </Link>
+        <div className="brand-group">
+          <Link className="brand" href="/" aria-label="Illimani Eats">
+            <Logo />
+          </Link>
+          <ThemeToggle />
+        </div>
         <form className="locate" ref={locateRef} onSubmit={locate}>
           <button className="locate-chip" type="button" aria-expanded={editingPlace} onClick={() => setEditingPlace((open) => !open)}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -608,8 +612,8 @@ export function Storefront({ restaurant, products }: { restaurant: Restaurant; p
                 road
                 path={road}
                 points={[
-                  { lat: restaurant.latitude, lng: restaurant.longitude, color: "#9b2335" },
-                  { lat: destination.lat, lng: destination.lng, color: "#1c7a49" },
+                  { lat: restaurant.latitude, lng: restaurant.longitude, color: "#b4232d" },
+                  { lat: destination.lat, lng: destination.lng, color: "#17633a" },
                 ]}
               />
             ) : (
@@ -929,7 +933,7 @@ export function Storefront({ restaurant, products }: { restaurant: Restaurant; p
             <h2>Información del negocio</h2>
             <button className="text-btn" type="button" onClick={() => setInfoOpen(false)}>Cerrar</button>
           </div>
-          <MiniMap points={[{ lat: restaurant.latitude, lng: restaurant.longitude, color: "#9b2335" }]} />
+          <MiniMap points={[{ lat: restaurant.latitude, lng: restaurant.longitude, color: "#b4232d" }]} />
           <p className="map-note">Mapa © OpenStreetMap</p>
           <h3>{restaurant.name}</h3>
           <p>{fullAddress}</p>

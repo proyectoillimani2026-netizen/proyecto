@@ -6,6 +6,7 @@ import { LAST_ORDER_KEY, MODE_KEY, readCart, readDestination, writeCart, writeDe
 import { distanceKm, money, quoteFee, unitPrice } from "@/lib/format";
 import type { DiningMode, PaymentMethod, Product, Restaurant } from "@/lib/types";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 
 type Draft = {
   customerName: string;
@@ -124,7 +125,10 @@ export function Checkout() {
   return (
     <>
       <header className="topbar">
-        <Link href="/"><Logo /></Link>
+        <div className="brand-group">
+          <Link href="/"><Logo /></Link>
+          <ThemeToggle />
+        </div>
       </header>
       <main className="narrow checkout">
         <form className="panel form" onSubmit={submit}>

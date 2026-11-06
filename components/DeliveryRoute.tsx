@@ -156,9 +156,9 @@ export function DeliveryRoute({ orders, userId }: { orders: Order[]; userId: str
 
   const split = splitRoute(path.length > 1 ? path : stops, shop, carrying);
   const points = [
-    ...(here ? [{ ...here, color: "#1d4e89" }] : []),
-    ...(shop ? [{ ...shop, color: "#9b2335" }] : []),
-    ...(destination ? [{ ...destination, color: "#1c7a49" }] : []),
+    ...(here ? [{ ...here, color: "#a78600" }] : []),
+    ...(shop ? [{ ...shop, color: "#b4232d" }] : []),
+    ...(destination ? [{ ...destination, color: "#17633a" }] : []),
   ];
   const toShop = !carrying && legs[0] ? legs[0] : null;
   const toDrop = carrying ? legs[0] : legs[1];
@@ -178,9 +178,9 @@ export function DeliveryRoute({ orders, userId }: { orders: Order[]; userId: str
       ) : null}
       {here ? (
         <p className="map-key">
-          <span><i style={{ background: "#1d4e89" }} /> Vos</span>
-          <span><i style={{ background: "#9b2335" }} /> Local</span>
-          {destination ? <span><i style={{ background: "#1c7a49" }} /> Destino</span> : null}
+          <span><i style={{ background: "#a78600" }} /> Vos</span>
+          <span><i style={{ background: "#b4232d" }} /> Local</span>
+          {destination ? <span><i style={{ background: "#17633a" }} /> Destino</span> : null}
         </p>
       ) : null}
       {toShop ? <p><b>{minutes(toShop.duration)}</b> hasta el local · {formatKm(toShop.distance / 1000)}</p> : null}

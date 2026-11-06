@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { roleLabel } from "@/lib/format";
 import type { Role } from "@/lib/types";
 import { Logo } from "./Logo";
+import { ThemeToggle } from "./ThemeToggle";
 
 const homes: Record<Role, string> = { admin: "/admin", kitchen: "/cocina", delivery: "/delivery", waiter: "/mozo", customer: "/" };
 
@@ -45,6 +46,7 @@ export function LoginForm({ next }: { next?: string }) {
   return (
     <main className="login-wrap">
       <form className="login-card" onSubmit={submit}>
+        <div className="card-theme"><ThemeToggle /></div>
         <Logo />
         <h1>Ingreso del equipo</h1>
         <p className="muted">Cocina, delivery, mozo y administración entran por acá. Los clientes se registran en la tienda.</p>

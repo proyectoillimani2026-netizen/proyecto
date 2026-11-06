@@ -72,9 +72,9 @@ export function CustomerCourierMap({ order }: { order: Order }) {
   if (!visible) return null;
 
   const points = [
-    ...(courier ? [{ ...courier, color: "#1d4e89" }] : []),
-    ...(shop ? [{ ...shop, color: "#9b2335" }] : []),
-    ...(destination ? [{ ...destination, color: "#1c7a49" }] : []),
+    ...(courier ? [{ ...courier, color: "#a78600" }] : []),
+    ...(shop ? [{ ...shop, color: "#b4232d" }] : []),
+    ...(destination ? [{ ...destination, color: "#17633a" }] : []),
   ];
   const path = !carrying ? road : [];
   const dropPath = carrying ? road : [];
@@ -90,9 +90,9 @@ export function CustomerCourierMap({ order }: { order: Order }) {
       {!courier && shop && destination ? <p className="muted">El local y tu dirección ya están. El pin del repartidor entra cuando comparte el GPS.</p> : null}
       {points.length > 0 ? (
         <p className="map-key">
-          {courier ? <span><i style={{ background: "#1d4e89" }} /> {order.courierName}</span> : null}
-          {shop ? <span><i style={{ background: "#9b2335" }} /> Local</span> : null}
-          {destination ? <span><i style={{ background: "#1c7a49" }} /> Tu dirección</span> : null}
+          {courier ? <span><i style={{ background: "#a78600" }} /> {order.courierName}</span> : null}
+          {shop ? <span><i style={{ background: "#b4232d" }} /> Local</span> : null}
+          {destination ? <span><i style={{ background: "#17633a" }} /> Tu dirección</span> : null}
         </p>
       ) : null}
     </div>
